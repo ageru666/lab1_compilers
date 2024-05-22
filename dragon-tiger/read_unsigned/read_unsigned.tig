@@ -1,0 +1,29 @@
+let
+  /* Функція для зчитування додатнього числа зі стандартного вводу. Повертає -1 у разі помилки */
+  function read_unsigned() : int =
+  let
+    var c : string := getchar()
+    var result : int := 0
+    var valid : int := 1
+  in
+    while c <> "" & c <> "\n" do
+    (
+      if ord(c) < 48 | ord(c) > 57 then
+        valid := 0
+      else
+        result := result * 10 + (ord(c) - 48);
+      c := getchar()
+    );
+    if c = "" & result = 0 then
+      valid := 0;
+    if valid = 1 then
+      result
+    else
+      -1
+  end
+  var a : int := read_unsigned()
+in
+  print_int(a*2);
+  print("\n")
+end
+
