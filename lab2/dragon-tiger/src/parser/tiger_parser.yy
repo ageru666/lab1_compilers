@@ -1,11 +1,9 @@
 %skeleton "lalr1.cc"
 %defines
 %define parser_class_name {tiger_parser}
-
 %define api.token.constructor
 %define api.value.type variant
 %define parse.assert
-
 %code requires
 {
 #include <string>
@@ -13,31 +11,24 @@ class ParserDriver;
 #include "../ast/nodes.hh"
 #include "../utils/errors.hh"
 #include "../utils/nolocation.hh"
-
 using namespace ast::types;
 using utils::nl;
 }
-
 // The parsing context.
 %param { ParserDriver& driver }
-
 %locations
 %initial-action
 {
   // Initialize the initial location.
   @$.begin.filename = @$.end.filename = &driver.file;
 };
-
 %define parse.trace
 %define parse.error verbose
-
 %code
 {
 #include "parser_driver.hh"
 }
-
 // Define Tiger's symbols and keywords tokens
-
 %define api.token.prefix {TOK_}
 %token
   EOF  0  "end of file"
@@ -79,11 +70,11 @@ using utils::nl;
 
 // Define tokens that have an associated value, such as identifiers or strings
 
+%token <int> INT "integer"
 %token <Symbol> ID "id"
 %token <Symbol> STRING "string"
 
 // Declare the nonterminals types
-
 // %type <Var *> var;
 %type <VarDecl *> param;
 %type <std::vector<VarDecl *>> params nonemptyparams;
@@ -91,32 +82,21 @@ using utils::nl;
 %type <std::vector<Decl *>> decls;
 %type <Expr *> expr stringExpr seqExpr callExpr opExpr negExpr
             assignExpr whileExpr forExpr breakExpr letExpr var;
-
 %type <std::vector<Expr *>> exprs nonemptyexprs;
 %type <std::vector<Expr *>> arguments nonemptyarguments;
-
 %type <Expr *> program;
-
 %type <boost::optional<Symbol>> typeannotation;
-
 %%
-
 // Declare precedence rules
-
 %nonassoc FUNCTION VAR TYPE DO OF ASSIGN;
 %left UMINUS;
-
 // Declare grammar rules and production actions
-
 %start program;
-
 program: expr { driver.result_ast = $1; }
 ;
-
 decl: varDecl { $$ = $1; }
    | funcDecl { $$ = $1; }
 ;
-
 expr: stringExpr { $$ = $1; }
    | seqExpr { $$ = $1; }
    | var { $$ = $1; }
@@ -129,36 +109,27 @@ expr: stringExpr { $$ = $1; }
    | breakExpr { $$ = $1; }
    | letExpr { $$ = $1; }
 ;
-
 varDecl: VAR ID typeannotation ASSIGN expr
   { $$ = new VarDecl(@1, $2, $3, $5); }
 ;
-
 funcDecl: FUNCTION ID LPAREN params RPAREN typeannotation EQ expr
   { $$ = new FunDecl(@1, $2, $6, $4, $8); }
 ;
-
 /* Exprs */
-
 stringExpr: STRING
   { $$ = new StringLiteral(@1, $1); }
 ;
-
 var : ID
   { $$ = new Identifier(@1, $1); }
 ;
-
 callExpr: ID LPAREN arguments RPAREN
   { $$ = new FunCall(@1, $3, $1); }
 ;
-
 negExpr: MINUS expr
   { $$ = new BinaryOperator(@1, new IntegerLiteral(@1, 0), $2, o_minus); }
   %prec UMINUS
 ;
-
 /*opExp: expr op expr*/
-
 opExpr: expr PLUS expr   { $$ = new BinaryOperator(@2, $1, $3, o_plus); }
       | expr MINUS expr  { $$ = new BinaryOperator(@2, $1, $3, o_minus); }
       | expr TIMES expr  { $$ = new BinaryOperator(@2, $1, $3, o_times); }
@@ -175,33 +146,24 @@ opExpr: expr PLUS expr   { $$ = new BinaryOperator(@2, $1, $3, o_plus); }
                             new IntegerLiteral(nl, 0));
       }
 ;
-
-
 assignExpr: ID ASSIGN expr
   { $$ = new Assign(@2, new Identifier(@1, $1), $3); }
 ;
-
 whileExpr: WHILE expr DO expr { $$ = new WhileLoop(@1, $2, $4); }
 ;
-
 forExpr: FOR ID ASSIGN expr TO expr DO expr
   { $$ = new ForLoop(@1, new VarDecl(@2, $2, boost::none, $4, true), $6, $8); }
 ;
-
 breakExpr: BREAK { $$ = new Break(@1); }
 ;
-
 letExpr: LET decls IN exprs END
   { $$ = new Let(@1, $2, new Sequence(nl, $4)); }
 ;
-
 seqExpr : LPAREN exprs RPAREN { $$ = new Sequence(@1, $2); }
 ;
-
 exprs: { $$ = std::vector<Expr *>(); }
   | nonemptyexprs { $$ = $1; }
 ;
-
 nonemptyexprs: expr { $$ = std::vector<Expr *>({$1}); }
   | nonemptyexprs SEMICOLON expr
   {
@@ -209,11 +171,9 @@ nonemptyexprs: expr { $$ = std::vector<Expr *>({$1}); }
     $$.push_back($3);
   }
 ;
-
 arguments: { $$ = std::vector<Expr *>(); }
   | nonemptyarguments { $$ = $1; }
 ;
-
 nonemptyarguments: expr { $$ = std::vector<Expr *>({$1}); }
   | nonemptyarguments COMMA expr
   {
@@ -221,11 +181,9 @@ nonemptyarguments: expr { $$ = std::vector<Expr *>({$1}); }
     $$.push_back($3);
   }
 ;
-
 params: { $$ = std::vector<VarDecl *>(); }
   | nonemptyparams { $$ = $1; }
 ;
-
 nonemptyparams: param { $$ = std::vector<VarDecl *>({$1}); }
   | nonemptyparams COMMA param
   {
@@ -233,7 +191,6 @@ nonemptyparams: param { $$ = std::vector<VarDecl *>({$1}); }
     $$.push_back($3);
   }
 ;
-
 decls: { $$ = std::vector<Decl *>();}
   | decls decl
   {
@@ -241,16 +198,12 @@ decls: { $$ = std::vector<Decl *>();}
     $$.push_back($2);
   }
 ;
-
 param: ID COLON ID { $$ = new VarDecl(@1, $1, $3, nullptr); }
 ;
-
 typeannotation: { $$ = boost::none; }
   | COLON ID { $$ = $2; }
 ;
-
 %%
-
 void
 yy::tiger_parser::error (const location_type& l,
                           const std::string& m)
