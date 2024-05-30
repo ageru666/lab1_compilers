@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
   ("trace-parser", "enable parser traces")
   ("trace-lexer", "enable lexer traces")
   ("verbose,v", "be verbose")
+("eval,e", "evaluate the parsed AST")
   ("input-file", po::value(&input_files), "input Tiger file");
 
   po::positional_options_description positional;
@@ -37,7 +38,8 @@ int main(int argc, char **argv) {
     utils::error("usage: dtiger [options] input-file");
   }
 
-  ParserDriver parser_driver = ParserDriver(vm.count("trace-lexer"), vm.count("trace-parser"));
+  ParserDriver parser_driver(vm.count("trace-lexer"), vm.count("trace-parser"));
+  parser_driver.eval_mode = vm.count("eval") > 0;
 
   if (!parser_driver.parse(input_files[0])) {
     utils::error("parser failed");
@@ -48,6 +50,5 @@ int main(int argc, char **argv) {
     parser_driver.result_ast->accept(dumper);
     dumper.nl();
   }
-  delete parser_driver.result_ast;
   return 0;
 }

@@ -1,6 +1,7 @@
 #include "../ast/nodes.hh"
 #include "tiger_parser.hh"
 #include <string>
+#include <memory>
 
 // Tell Flex the lexer's prototype ...
 #define YY_DECL yy::tiger_parser::symbol_type yylex(ParserDriver &driver)
@@ -9,9 +10,9 @@ YY_DECL;
 
 class ParserDriver {
 public:
-  ParserDriver(bool _trace_lexer, bool _trace_parser) :
-    trace_lexer(_trace_lexer), trace_parser(_trace_parser) {}
-  virtual ~ParserDriver() {};
+  ParserDriver(bool _trace_lexer, bool _trace_parser)
+    : trace_lexer(_trace_lexer), trace_parser(_trace_parser) {}
+  virtual ~ParserDriver() {}
 
   // Handling the lexer.
   void lex_begin();
@@ -22,7 +23,7 @@ public:
   bool trace_parser;
 
   // The parser produced AST
-  Expr *result_ast;
+  std::unique_ptr<Expr> result_ast; // Use a smart pointer for better memory management
 
   // Run the parser on file f.
   // Returns true on success.
@@ -31,4 +32,7 @@ public:
   // The name of the file being parsed.
   // Used later to pass the file name to the location tracker.
   std::string file;
+
+  // Flag to indicate evaluation mode
+  bool eval_mode = false;
 };
