@@ -1,0 +1,4 @@
+A deterministic automaton (DFA) is one where for each state and input symbol, there is exactly one transition to a next state. This automaton is not deterministic because:
+1)From state 1, there are e-transitions to both state 2 and state 5.
+2)From state 2, there are e-transitions to state 3 and state 6, as well as symbol transitions on 'z' and 'y'.
+Thus, for state 1 and input symbol e, there are multiple possible next states (states 2 and 5). This makes the automaton non-deterministic.
